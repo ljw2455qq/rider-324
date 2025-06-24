@@ -3,11 +3,23 @@
 <html>
 <head>
   <meta charset="UTF-8" />
-  <title>GPS Overlay</title>
+  <title>GPS Overlay with Profile and Earnings</title>
   <style>
     html, body, #map {
       height: 100%;
       margin: 0;
+    }
+    #info {
+      position: absolute;
+      top: 10px;
+      left: 10px;
+      background: rgba(0,0,0,0.6);
+      color: #fff;
+      padding: 10px;
+      border-radius: 8px;
+      font-family: sans-serif;
+      font-size: 14px;
+      z-index: 1000;
     }
   </style>
   <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-app.js"></script>
@@ -17,6 +29,7 @@
 </head>
 <body>
   <div id="map"></div>
+  <div id="info">📍 이동거리: 0.00km<br>💰 수익: 0원</div>
   <script type="module">
     import { initializeApp } from "https://www.gstatic.com/firebasejs/9.6.1/firebase-app.js";
     import { getDatabase, ref, onValue } from "https://www.gstatic.com/firebasejs/9.6.1/firebase-database.js";
@@ -40,7 +53,31 @@
       maxZoom: 19
     }).addTo(map);
 
-    const marker = L.marker([35.1291, 126.8539]).addTo(map);
+    const profileIcon = L.icon({
+      iconUrl: "https://upload.wikimedia.org/wikipedia/commons/thumb/8/89/Portrait_Placeholder.png/600px-Portrait_Placeholder.png",
+      iconSize: [48, 48],
+      iconAnchor: [24, 24],
+      className: "round-image"
+    });
+
+    let marker = L.marker([35.1291, 126.8539], { icon: profileIcon }).addTo(map);
+    let prevLatLng = null;
+    let totalDistance = 0;
+
+    const infoBox = document.getElementById("info");
+
+    function getDistance(latlng1, latlng2) {
+      const R = 6371;
+      const dLat = (latlng2[0] - latlng1[0]) * Math.PI / 180;
+      const dLon = (latlng2[1] - latlng1[1]) * Math.PI / 180;
+      const a =
+        Math.sin(dLat / 2) * Math.sin(dLat / 2) +
+        Math.cos(latlng1[0] * Math.PI / 180) *
+        Math.cos(latlng2[0] * Math.PI / 180) *
+        Math.sin(dLon / 2) * Math.sin(dLon / 2);
+      const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+      return R * c;
+    }
 
     const locationRef = ref(db, 'location');
     onValue(locationRef, (snapshot) => {
@@ -49,6 +86,16 @@
         const latlng = [data.lat, data.lng];
         marker.setLatLng(latlng);
         map.setView(latlng);
+
+        if (prevLatLng) {
+          const dist = getDistance(prevLatLng, latlng);
+          totalDistance += dist;
+        }
+        prevLatLng = latlng;
+
+        const km = totalDistance.toFixed(2);
+        const earnings = Math.floor(totalDistance * 800);
+        infoBox.innerHTML = `📍 이동거리: ${km}km<br>💰 수익: ${earnings.toLocaleString()}원`;
       }
     });
   </script>
