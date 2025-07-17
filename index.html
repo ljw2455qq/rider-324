@@ -1,87 +1,97 @@
 <!DOCTYPE html>
 <html>
 <head>
-  <meta charset="utf-8">
-  <title>GPS 오버레이</title>
-  <link rel="stylesheet" href="https://unpkg.com/leaflet/dist/leaflet.css" />
-  <style>
-    html, body { margin: 0; background: transparent; color: white; font-family: sans-serif; }
-    #map { height: 300px; width: 100%; }
-    .info-box {
-      background: rgba(0,0,0,0.5);
-      padding: 10px;
-      font-size: 16px;
-    }
-    .leaflet-marker-icon.circle-icon {
-      border-radius: 50%;
-      border: 2px solid white;
-      box-shadow: 0 0 5px #000;
-    }
-  </style>
+    <meta charset="utf-8">
+    <title>GPS 오버레이</title>
+    <link rel="stylesheet" href="https://unpkg.com/leaflet/dist/leaflet.css" />
+    <style>
+        html, body { margin: 0; background: transparent; color: white; font-family: sans-serif; }
+        #map { height: 300px; width: 100%; }
+        .info-box {
+            background: rgba(0,0,0,0.5);
+            padding: 10px;
+            font-size: 16px;
+        }
+        .leaflet-marker-icon.circle-icon {
+            border-radius: 50%;
+            border: 2px solid white;
+            box-shadow: 0 0 5px #000;
+        }
+    </style>
 </head>
 <body>
-  <div id="map"></div>
-  <div class="info-box" id="info">GPS 대기 중...</div>
+    <div id="map"></div>
+    <div class="info-box" id="info">GPS 대기 중...</div>
 
-  <script src="https://unpkg.com/leaflet/dist/leaflet.js"></script>
-  <script>
-    let map = L.map('map').setView([35.1291, 126.8540], 17);
-    let totalDistance = 0, prevLat = null, prevLng = null;
-    const payPerKm = 800;
+    <script src="https://unpkg.com/leaflet/dist/leaflet.js"></script>
+    <script>
+        let map = L.map('map').setView([35.1291, 126.8540], 17);
+        let totalDistance = 0, prevLat = null, prevLng = null;
+        const payPerKm = 800;
 
-    const myIcon = L.icon({
-      iconUrl: 'profile.png',
-      iconSize: [24, 24],
-      iconAnchor: [24, 24],
-      className: 'circle-icon'
-    });
+        const myIcon = L.icon({
+            iconUrl: 'profile.png',
+            iconSize: [16, 16],   // <-- 마커 이미지 크기 16x16으로 변경
+            iconAnchor: [8, 16],  // <-- 아이콘의 바닥 중앙이 GPS 위치에 오도록 조정 (가로 16/2=8, 세로 16)
+            className: 'circle-icon'
+        });
 
-    let marker = L.marker([35.1291, 126.8540], { icon: myIcon }).addTo(map);
+        let marker = L.marker([35.1291, 126.8540], { icon: myIcon }).addTo(map);
 
-    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-      maxZoom: 19
-    }).addTo(map);
+        L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+            maxZoom: 19
+        }).addTo(map);
 
-    function deg2rad(d) { return d * (Math.PI / 180); }
+        function deg2rad(d) { return d * (Math.PI / 180); }
 
-    function getDistance(lat1, lon1, lat2, lon2) {
-      const R = 6371;
-      const dLat = deg2rad(lat2 - lat1);
-      const dLon = deg2rad(lon2 - lon1);
-      const a = Math.sin(dLat / 2) ** 2 +
-                Math.cos(deg2rad(lat1)) * Math.cos(deg2rad(lat2)) *
-                Math.sin(dLon / 2) ** 2;
-      return R * 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
-    }
-
-    function updateInfo() {
-      const km = totalDistance.toFixed(2);
-      const earn = Math.floor(totalDistance * payPerKm);
-      document.getElementById('info').innerHTML = `이동 거리: ${km} km<br>수익: ${earn.toLocaleString()} 원`;
-    }
-
-    if (navigator.geolocation) {
-      navigator.geolocation.watchPosition(pos => {
-        const lat = pos.coords.latitude, lng = pos.coords.longitude;
-        marker.setLatLng([lat, lng]);
-        map.setView([lat, lng]);
-
-        if (prevLat !== null && prevLng !== null) {
-          const d = getDistance(prevLat, prevLng, lat, lng);
-          if (d < 1) totalDistance += d;
+        function getDistance(lat1, lon1, lat2, lon2) {
+            const R = 6371;
+            const dLat = deg2rad(lat2 - lat1);
+            const dLon = deg2rad(lon2 - lon1);
+            const a = Math.sin(dLat / 2) ** 2 +
+                      Math.cos(deg2rad(lat1)) * Math.cos(deg2rad(lat2)) *
+                      Math.sin(dLon / 2) ** 2;
+            return R * 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
         }
-        prevLat = lat;
-        prevLng = lng;
 
-        updateInfo();
-      }, err => {
-        document.getElementById('info').textContent = 'GPS 오류: ' + err.message;
-      }, {
-        enableHighAccuracy: true,
-        maximumAge: 2000,
-        timeout: 10000
-      });
-    }
-  </script>
+        function updateInfo() {
+            const km = totalDistance.toFixed(2);
+            const earn = Math.floor(totalDistance * payPerKm);
+            document.getElementById('info').innerHTML = `이동 거리: ${km} km<br>수익: ${earn.toLocaleString()} 원`;
+        }
+
+        if (navigator.geolocation) {
+            navigator.geolocation.watchPosition(pos => {
+                const lat = pos.coords.latitude, lng = pos.coords.longitude;
+                marker.setLatLng([lat, lng]);
+                map.setView([lat, lng]); // 지도를 마커 위치로 이동하여 마커가 중앙에 보이도록
+
+                if (prevLat !== null && prevLng !== null) {
+                    const d = getDistance(prevLat, prevLng, lat, lng);
+                    // 너무 작은 움직임은 무시하여 GPS 오차로 인한 거리 증가 방지
+                    if (d < 0.005) { // 5미터 미만 이동은 무시
+                         // do nothing
+                    } else if (d < 1) { // 1km 미만 이동은 합산 (정상적인 이동)
+                        totalDistance += d;
+                    } else { // 1km 이상 갑작스러운 이동은 GPS 튀는 현상으로 간주하고 무시
+                        console.warn("Large GPS jump detected, ignoring distance:", d.toFixed(2), "km");
+                    }
+                }
+                prevLat = lat;
+                prevLng = lng;
+
+                updateInfo();
+            }, err => {
+                document.getElementById('info').textContent = 'GPS 오류: ' + err.message;
+                console.error("Geolocation error:", err);
+            }, {
+                enableHighAccuracy: true,
+                maximumAge: 2000,
+                timeout: 10000
+            });
+        } else {
+            document.getElementById('info').textContent = '이 브라우저는 GPS를 지원하지 않습니다.';
+        }
+    </script>
 </body>
 </html>
