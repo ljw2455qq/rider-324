@@ -2,7 +2,7 @@
 <html>
   <head>
     <meta charset="utf-8" />
-    <title>RealtimeIRL Map with Custom Marker</title>
+    <title>RealtimeIRL Map - Sejong Centered</title>
     <script src="https://api.mapbox.com/mapbox-gl-js/v2.2.0/mapbox-gl.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/@mapbox/mapbox-sdk/umd/mapbox-sdk.min.js"></script>
     <script src="https://mapbox.github.io/mapbox-gl-language/index.js"></script>
@@ -36,18 +36,22 @@
       const PULL_KEY = "zeoeyze9htbyx455";
 
       mapboxgl.accessToken = ACCESS_TOKEN;
+
+      // 📍 세종특별시 중심 좌표
+      const sejongCenter = [127.2890, 36.4800];
+
       const map = new mapboxgl.Map({
         container: "map",
         style: "mapbox://styles/mapbox/streets-v12",
-        center: [126.9780, 37.5665],
-        zoom: 15,
+        center: sejongCenter,
+        zoom: 14,
         interactive: false,
         attributionControl: false,
       });
 
       map.addControl(new MapboxLanguage({ defaultLanguage: "ko" }));
 
-      // ✅ profile.png 마커 생성
+      // ✅ profile.png 마커
       const el = document.createElement("div");
       el.style.backgroundImage = 'url("profile.png")';
       el.style.width = "24px";
@@ -58,10 +62,10 @@
       el.style.boxShadow = "0 0 8px rgba(0,0,0,0.5)";
 
       const marker = new mapboxgl.Marker(el)
-        .setLngLat([126.9780, 37.5665])
+        .setLngLat(sejongCenter)
         .addTo(map);
 
-      // ✅ 실시간 위치 업데이트
+      // ✅ 실시간 이동 위치 반영
       RealtimeIRL.forPullKey(PULL_KEY).addLocationListener((location) => {
         if (location.latitude && location.longitude) {
           marker.setLngLat([location.longitude, location.latitude]);
