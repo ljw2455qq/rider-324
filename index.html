@@ -28,7 +28,8 @@
       }
 
       .mapboxgl-ctrl-logo,
-      .mapboxgl-ctrl-attrib {
+      .mapboxgl-ctrl-attrib,
+      .mapboxgl-ctrl-top-right {
         display: none !important;
       }
     </style>
@@ -56,9 +57,6 @@
       });
 
       map.addControl(new MapboxLanguage({ defaultLanguage: "ko" }));
-
-      // ✅ 확대/축소 버튼 추가
-      map.addControl(new mapboxgl.NavigationControl());
 
       // ✅ profile.png 마커
       const el = document.createElement("div");
