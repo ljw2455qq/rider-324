@@ -2,7 +2,7 @@
 <html>
   <head>
     <meta charset="utf-8" />
-    <title>RealtimeIRL Map - Sejong Interactive</title>
+    <title>Frank-style Mini Map</title>
     <script src="https://api.mapbox.com/mapbox-gl-js/v2.2.0/mapbox-gl.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/@mapbox/mapbox-sdk/umd/mapbox-sdk.min.js"></script>
     <script src="https://mapbox.github.io/mapbox-gl-language/index.js"></script>
@@ -17,10 +17,16 @@
         padding: 0;
         background: transparent;
       }
+
+      /* ✅ 프랭크 오버레이용 지도 크기 */
       #map {
-        width: 100%;
-        height: 100vh;
+        width: 300px;
+        height: 250px;
+        border-radius: 15px;
+        overflow: hidden;
+        box-shadow: 0 0 15px rgba(0, 255, 255, 0.6);
       }
+
       .mapboxgl-ctrl-logo,
       .mapboxgl-ctrl-attrib {
         display: none !important;
@@ -29,6 +35,7 @@
   </head>
   <body>
     <div id="map"></div>
+
     <script>
       const ACCESS_TOKEN =
         "pk.eyJ1IjoiaG9vbmNvbSIsImEiOiJjbWNjM3R4enUwM3pnMmlxMWJvZTVrMWIzIn0.h_-BNK4FuriEfFWXvE1pmw";
@@ -44,7 +51,7 @@
         style: "mapbox://styles/mapbox/streets-v12",
         center: sejongCenter,
         zoom: 15,
-        interactive: true, // ✅ 마우스 조작 가능
+        interactive: true, // ✅ 마우스로 이동 가능
         attributionControl: false,
       });
 
@@ -61,13 +68,13 @@
       el.style.backgroundSize = "cover";
       el.style.borderRadius = "50%";
       el.style.border = "2px solid white";
-      el.style.boxShadow = "0 0 8px rgba(0,0,0,0.5)";
+      el.style.boxShadow = "0 0 8px cyan";
 
       const marker = new mapboxgl.Marker(el)
         .setLngLat(sejongCenter)
         .addTo(map);
 
-      // ✅ 실시간 위치 이동 반영
+      // ✅ 실시간 위치 이동
       RealtimeIRL.forPullKey(PULL_KEY).addLocationListener((location) => {
         if (location.latitude && location.longitude) {
           marker.setLngLat([location.longitude, location.latitude]);
